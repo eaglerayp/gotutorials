@@ -1,0 +1,77 @@
+FORMAT: 1A
+HOST: http://127.0.0.1:8999
+
+# HW1 API
+
+The Simple API Server
+
+# Data Structures
+
+## Response 200 Base (object)
++ Code: 0 (number) - Return code
++ Result (object, optional) - Return result
+
+### Health [GET /health/v1]
+Show api service status 
+
++ Response 200 (application/json)
+    + Attributes (Response 200 Base)
+
+### Create Object [POST /objects/v1/{collection}]
++ Request
+    + Headers
+
+            X-Authorization: "xxxxx"
+    + Attributes (object)
+        + id: 56cea1d8c9922205b5bdfab6 (string, optional) - objectId
++ Response 200 (application/json)
+    + Attributes (Response 200 Base)
+        + Results (object, optional)
+            + Created: true (boolean)
+            + id: 56cea1d8c9922205b5bdfab6 (string)
+            + UpdatedAt: `2017-02-10T10:26:40.954Z` (string)
+
+## RUD [/objects/v1/{collection}/{id}]
++ Parameters
+    + collection: MyTable (string, required)
+    + id: 56cea1d8c9922205b5bdfab6 (string, required) - objectId
+
+### Read Object [GET]
++ Request
+    + Headers
+
+            X-Authorization: "xxxxx"
++ Response 200 (application/json)
+    + Attributes (Response 200 Base)
+
+### Upsert Object [PUT]
++ Request
+    + Headers
+
+            X-Authorization: "xxxxx"
+    + Attributes (object)
++ Response 200 (application/json)
+    + Attributes (Response 200 Base)
+        + Results (object, optional)
+            + Created: true (boolean)
+            + id: 56cea1d8c9922205b5bdfab6 (string)
+            + UpdatedAt: `2017-02-10T10:26:40.954Z` (string)
+### Update Object [PATCH]
++ Request
+    + Headers
+
+            X-Authorization: "xxxxx"
+    + Attributes (object)
++ Response 200 (application/json)
+    + Attributes (Response 200 Base)
+        + Results (object, optional)
+            + Created: false (boolean)
+            + id: 56cea1d8c9922205b5bdfab6 (string)
+            + UpdatedAt: `2017-02-10T10:26:40.954Z` (string)
+### Delete Object [DELETE]
++ Request
+    + Headers
+
+            X-Authorization: "xxxxx"
++ Response 200 (application/json)
+    + Attributes (Response 200 Base)
