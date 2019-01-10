@@ -1,7 +1,7 @@
 <!-- $theme: gaia -->
-# Golang Tutorial
+# Golang Tutorial #1
 
-## #1 Getting started
+## Getting started
 
 ---
 # Environment Setup
