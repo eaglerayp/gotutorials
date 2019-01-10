@@ -43,20 +43,14 @@
 
 ```mod
 module gitlab.com/eaglerayp/lotushouse
-
 require (
 	cloud.google.com/go v0.34.0 // indirect
 	firebase.google.com/go v3.5.0+incompatible
 	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
-	go.opencensus.io v0.18.0 // indirect
-	golang.org/x/oauth2 v0.0.0-20181203162652-d668ce993890 // indirect
-	google.golang.org/api v0.0.0-20181217000635-41dc4b66e69d
-	google.golang.org/grpc v1.17.0 // indirect
-)
 ```
 
 * build `go build ./...`
- * Standard commands like go build or go test will automatically add new dependencies as needed to satisfy imports (updating go.mod and downloading the new dependencies).
+  * `go build, go test` will automatically add new dependencies(updating go.mod and downloading the new dependencies).
 * create vendor `go mod vendor`
 
 ---
@@ -67,7 +61,7 @@ require (
 * `go tool pprof`
 * [http pprof](https://golang.org/pkg/net/http/pprof/)
 * `go tool pprof -http=":8011" http://localhost:10201/debug/pprof/profile?seconds=30`
-* http pprof example: https://gitlab.devops.maaii.com/general-backend/m800-application-plugin/blob/master/prof.go
+* [http pprof example](https://gitlab.devops.maaii.com/general-backend/m800-application-plugin/blob/master/prof.go)
 
 ---
 
