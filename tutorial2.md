@@ -17,6 +17,18 @@
 
 ---
 
+# golang package
+
+* namespace
+  * shared namespace inside package, global var/func/...
+* dependency
+  * import by package
+* only package main is entry
+* godoc split page by package
+* test split py package
+
+---
+
 # golang package template/example
 
 * example: [awesome](https://github.com/avelino/awesome-go)
