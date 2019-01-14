@@ -29,6 +29,19 @@
 
 ---
 
+# golang package alias
+
+* https://github.com/golang/go/wiki/CodeReviewComments#imports
+
+```golang
+import   "lib/math"         // math.Sin
+import M "lib/math"         // M.Sin
+import . "lib/math"         // Sin    like import math.*
+import _ "lib/math"         // only do the init() for math package
+```
+
+---
+
 # golang package template/example
 
 * example: [awesome](https://github.com/avelino/awesome-go)
@@ -67,7 +80,7 @@ require (
 
 ---
 
-#  go profiling (including tracing, go test benchmark)
+# go profiling
 
 * https://github.com/davecheney/gophercon2018-performance-tuning-workshop
 * `go tool pprof`
