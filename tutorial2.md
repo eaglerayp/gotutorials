@@ -57,8 +57,41 @@ import _ "lib/math"         // only do the init() for math package
 * https://blog.golang.org/go-concurrency-patterns-timing-out-and
 * https://blog.golang.org/pipelines
 * https://talks.golang.org/2012/concurrency.slide
-* Channel Example:  https://gitlab.devops.maaii.com/general-backend/mongodao/blob/master/pool.go#L75
-* Goroutine Example: https://gitlab.devops.maaii.com/general-backend/m800-application-plugin/blob/master/controller/gin.go#L446
+
+---
+
+# Gin async fast timeout
+
+```golang
+ctx.SetTimeout(timeout)
+go func() {
+    c.Next()
+    finish()
+}()
+<-ctx.Done()
+switch ctx.Err() {
+// fast return to release http resource, actual handler is still running
+case context.DeadlineExceeded:
+    GinError(c, ErrTimeout)
+    return
+default:
+    // do nothing, common path
+}
+```
+
+---
+
+# resource pool (queue/ ring buffer)
+
+```golang
+c := make(chan *Session, dbi.MaxConn)
+
+// fetch resource, blocking call
+session = <-p.c:
+
+// put back to pool after used
+p.c <- session
+```
 
 ---
 
@@ -86,7 +119,25 @@ require (
 * `go tool pprof`
 * [http pprof](https://golang.org/pkg/net/http/pprof/)
 * `go tool pprof -http=":8011" http://localhost:10201/debug/pprof/profile?seconds=30`
-* [http pprof example](https://gitlab.devops.maaii.com/general-backend/m800-application-plugin/blob/master/prof.go)
+
+---
+
+# HTTP pprof example
+
+```golang
+import (
+	"log"
+	"net/http"
+	_ "net/http/pprof"
+)
+
+// ActivateProfile runs the profiling endpoint
+func ActivateProfile() {
+	log.Println("Start profiling")
+	go http.ListenAndServe(":10201", http.DefaultServeMux)
+}
+
+```
 
 ---
 
