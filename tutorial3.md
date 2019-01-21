@@ -35,6 +35,28 @@ func TestMain(m *testing.M) {
 
 ---
 
+# Assert
+
+```golang
+func TestGetMongoDBInfo(t *testing.T) {
+	mongoConfig := getMongoDBInfo()
+	assert.Equal(t, "testt", mongoConfig.Name)
+}
+```
+
+```bash
+--- FAIL: TestGetMongoDBInfo (0.00s)
+    .../main_test.go:54:
+        	Error Trace:	main_test.go:54
+        	Error:      	Not equal:
+        	            	expected: "testt"
+        	            	actual  : "test"
+        	Test:       	TestGetMongoDBInfo
+FAIL
+```
+
+---
+
 # HTTP mock
 
 ```golang
