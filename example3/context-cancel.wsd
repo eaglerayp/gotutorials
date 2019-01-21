@@ -1,0 +1,19 @@
+@startuml context-cancel
+
+component [root] 
+package CancelScope {
+  () c12
+  () c22
+  () c23
+}
+
+root-down->c11: withValue(k1,v1)
+root-down->c12: withCancel()
+c11-down->c21: withValue(k1,v2)
+c12-down->c22: withValue(k2,v1)
+c12-down->c23: withCancel()
+note right of [c11]
+not affected by cancel(c12)
+end note
+
+@enduml

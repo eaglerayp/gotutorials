@@ -109,7 +109,7 @@ func AfterTest(ret *int) {
 
 # go benchmark #1
 
-* `go test -benchmem -run=xxx`
+* `go test -benchmem -run=xxx` (test cpu time and memory alloc)
 * used when compared two or more syntax/function
 
 ```golang
@@ -127,19 +127,15 @@ func BenchmarkIfLt1(b *testing.B) {
 
 ---
 
-# go benchmark #2
+# go benchmark result
 
-
-```golang
-func BenchmarkIfEq0(b *testing.B) {
-	count := 0
-	test := ""
-	for n := 0; n < b.N; n++ {
-		if len(test) == 0 {
-			count++
-		}
-	}
-	fmt.Println("Eq0:", count)
+```bash
+BenchmarkIfLt1-4   	lt1: 100
+lt1: 10000
+lt1: 1000000
+lt1: 100000000
+lt1: 2000000000
+2000000000	         0.64 ns/op	       0 B/op	       0 allocs/op
 }
 ```
 
@@ -165,6 +161,12 @@ func BenchmarkIfEq0(b *testing.B) {
 * default empty ctx implement all methods
 * always start with context.Background()/TODO()
 * feature context focus on its method
+
+---
+
+# go context tree example
+
+![](example3/context-tree.png)
 
 ---
 
@@ -195,6 +197,12 @@ for child := range c.children {
 	child.cancel(false, err)
 }
 ```
+
+---
+
+# go cancel tree example
+
+![](example3/context-cancel.png)
 
 ---
 

@@ -1,0 +1,16 @@
+@startuml context-tree
+
+component [root] 
+note right of [root]
+context.Background()/TODO()
+end note
+root-down->c11: withValue(k1,v1)
+root-down->c12: withCancel()
+c11-down->c21: withValue(k1,v2)
+c12-down->c22: withValue(k2,v1)
+c12-down->c23: withCancel()
+
+note right of [c21]
+get(k1) // v2
+end note
+@enduml
