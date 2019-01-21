@@ -153,12 +153,24 @@ func BenchmarkIfEq0(b *testing.B) {
 * [go grpc example](https://github.com/grpc/grpc-go/tree/master/examples/helloworld)
 * server and client struct implement interface
 * `RegisgerXXXServiceServer` `NewXXXServiceClient`
+* example in the example3/
 
 ---
 
 # go context
 
 * built-in library [context](https://golang.org/pkg/context/)
+* bi-directional tree structure.
+* tricky but flexible design.
+* default empty ctx implement all methods
+* always start with context.Background()/TODO()
+* feature context focus on its method
+
+---
+
+# go cancel context struct
+
+* mixin a Context, use chain-map to find all children
 
 ```golang
 type cancelCtx struct {
@@ -173,27 +185,103 @@ type cancelCtx struct {
 
 ---
 
-# go context cancel
+# go cancel
+
+* use chain-map to find all children
 
 ```golang
-	ctx, cancel := context.WithCancel(context.Background())
-
-    // after complete somethings...
-    cancel()
+for child := range c.children {
+	// NOTE: acquiring the child's lock while holding parent's lock.
+	child.cancel(false, err)
+}
 ```
 
 ---
 
-# go context deadline/timeout
+# go timer context
+
+* mixin a cancelCtx
+* only focus on Deadline() and Timer
+
+```golang
+// A timerCtx carries a timer and a deadline. It embeds a cancelCtx to
+// implement Done and Err. It implements cancel by stopping its timer then
+// delegating to cancelCtx.cancel.
+type timerCtx struct {
+	cancelCtx
+	timer *time.Timer // Under cancelCtx.mu.
+
+	deadline time.Time
+}
+```
+
+---
+
+# go timer.Timer
+
+* timer is a channel waiting event at given time
+
+```golang
+// from time.sleep.go
+// The Timer type represents a single event.
+// When the Timer expires, the current time will be sent on C,
+// unless the Timer was created by AfterFunc.
+// A Timer must be created with NewTimer or AfterFunc.
+type Timer struct {
+	C <-chan Time
+	r runtimeTimer
+}
+```
+
+---
+
+# go timer context cancel
+
+* stop timer and cancel its related cancelCtx
+
+```golang
+func (c *timerCtx) cancel(removeFromParent bool, err error) {
+c.cancelCtx.cancel(false, err)
+if removeFromParent {
+	// Remove this timerCtx from its parent cancelCtx's children.
+	removeChild(c.cancelCtx.Context, c)
+}
+c.timer.Stop()
+c.timer = nil
+}
+```
+
+---
+
+# go value context
+
+* find parent if not found
+
+```golang
+type valueCtx struct {
+	Context
+	key, val interface{}
+}
+
+func (c *valueCtx) Value(key interface{}) interface{} {
+	if c.key == key {
+		return c.val
+	}
+	return c.Context.Value(key)
+}
+```
+
+---
+
+# go context deadline/timeout example
+
+* when timer event trigger, it send cancel signal to its cancelCtx, then Done() received signal
 
 ```golang
 ctx, cancel := context.WithDeadline(context.Background(), d)
-
 // Even though ctx will be expired, it is good practice to call its
-// cancelation function in any case. Failure to do so may keep the
-// context and its parent alive longer than necessary.
+// cancelation function in any case.
 defer cancel()
-
 select {
 case <-time.After(1 * time.Second):
     fmt.Println("overslept")

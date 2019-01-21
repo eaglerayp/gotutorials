@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	pb "gitlab.com/go-tutorials/practice/hw3/echo"
+	pb "gitlab.com/go-tutorials/practice/example3/echo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -25,7 +25,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
+	// grpc Server is the struct which do the tcp listen
 	s := grpc.NewServer()
+	// one service can only regist one handler,
+	// but one grpc Server can handle multi grpc service server
 	pb.RegisterEchoServiceServer(s, &Server{})
 	// Register reflection service on gRPC server.
 	reflection.Register(s)
