@@ -21,6 +21,13 @@
 4. go profiling (including tracing, go test benchmark)
 5. go mod
 
+## Lesson 3
+
+1. go unit test
+1. go benchmark
+1. go gRPC
+1. go context
+
 ## HW
 
 ### HW1
