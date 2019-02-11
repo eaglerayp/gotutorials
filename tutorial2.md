@@ -95,21 +95,25 @@ p.c <- session
 
 ---
 
-# go mod
+# go mod init
 
-* `go mod init github.com/xxx/xxx`
+* `go mod init github.com/xxx/xxx` only create go.mod
+* `go build ./...` generate items in go.mod & go.sum
+* force version by set `go.mod`
 
 ```mod
-module gitlab.com/eaglerayp/lotushouse
+module gitlab.com/eaglerayp/...
 require (
 	cloud.google.com/go v0.34.0 // indirect
-	firebase.google.com/go v3.5.0+incompatible
-	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
 ```
 
-* build `go build ./...`
-  * `go build, go test` will automatically add new dependencies(updating go.mod and downloading the new dependencies).
-* create vendor `go mod vendor`
+---
+
+# go mod build/test
+
+* `go build, go test` will automatically add new dependencies(updating go.mod and downloading the new dependencies).
+* create vendor `go mod vendor`, build by vendor `go build/install -mod=vendor`
+* it's easier to use vendor if there is private dependency.
 
 ---
 
