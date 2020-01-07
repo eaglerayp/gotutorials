@@ -1,32 +1,41 @@
 # Go-tutorial
 
 * hw* are the folder for voluntary homework, can write the project under hw*/ and send merge request for peer review.
-* tutorial*.md/pdf is the materials. using marp to generate pdf from md.
 
 ## Lesson 1
 
 * Env setup
 * DEV env setup (VSCode + linter + tools)
 * go test
-* golang common mistakes
-* library exported concept
-* common libraries
-* gin
+* go mod
+* tips
 
 ## Lesson 2
 
-1. golang coding convention
-2. golang package template
-3. go example on go routines, channels
-4. go profiling (including tracing, go test benchmark)
-5. go mod
+* golang coding convention
+* golang package template
+* go example on go routines, channels
+* library exported concept
+* common libraries
+* go context
 
 ## Lesson 3
 
-1. go unit test
-1. go benchmark
-1. go gRPC
-1. go context
+* go unit test
+* go benchmark
+* go debug
+* go profiling
+
+## Lesson 4
+
+* go error
+* gin
+* log
+* kafka
+
+## Lesson 5
+
+* go grpc
 
 ## HW
 

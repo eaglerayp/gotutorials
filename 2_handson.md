@@ -1,155 +1,117 @@
-<!-- $theme: gaia -->
+---
+marp: true
+---
 
-# Golang Tutorial #3
+<!-- theme: gaia -->
 
-* unit test
-* benchmark
-* go-grpc
-* context
+# Golang Tutorial #2
+
+## Hands on
+
+* coding convention
+* package template
+* common libraries
+* go examples
+* go context
 
 ---
 
-# unit test tool
+# golang coding convention
 
-* [assert](github.com/stretchr/testify/assert)
-* [dockertest](gopkg.in/ory-am/dockertest)
-* [gock](gopkg.in/h2non/gock)
+* camelCase
+* [official blog](https://github.com/golang/go/wiki/CodeReviewComments)
+* package name 單數名詞
+* package 內部 variable name 不要重複 prefix, e.g., `chubby.ChubbyFile`
+* [error variable naming](https://github.com/golang/go/wiki/Errors): prefix with `err` or `Err`
+* Named Result Parameters 個人喜好
 
 ---
 
-# unit test flow control
+# golang package
+
+* namespace
+  * shared namespace inside package, global var/func/...
+* dependency
+  * import by package
+* only package main is entry
+* godoc split page by package
+* test split py package
+
+---
+
+# golang package alias
+
+* https://github.com/golang/go/wiki/CodeReviewComments#imports
 
 ```golang
-// init_test.go
-func TestMain(m *testing.M) {
-	log.SetOutput(os.Stdout)
-	log.SetFlags(log.LstdFlags)
-	var p *int
-	retCode := 0
-	p = &retCode
-	BeforeTest()
-	defer AfterTest(p)
-	*p = m.Run()
+import   "lib/math"         // math.Sin
+import M "lib/math"         // M.Sin
+import . "lib/math"         // Sin    like import math.*
+import _ "lib/math"         // only do the init() for math package
+```
+
+---
+
+# golang package template/example
+
+* example: [awesome](https://github.com/avelino/awesome-go)
+  * [server application](https://github.com/hashicorp/consul)
+  * [cmd tools](https://github.com/drone/drone)
+  * [library](https://github.com/gin-gonic/gin)
+* [project layout](https://github.com/golang-standards/project-layout)
+
+---
+
+# Libraries
+
+* context https://golang.org/pkg/context/
+* log: https://github.com/sirupsen/logrus
+* exported package concept
+* gin github.com/gin-gonic/gin
+* https://mholt.github.io/json-to-go/
+
+---
+
+# go example on go routines, channels 用法
+
+* https://blog.golang.org/go-concurrency-patterns-timing-out-and
+* https://blog.golang.org/pipelines
+* https://talks.golang.org/2012/concurrency.slide
+
+---
+
+# Gin async fast timeout
+
+```golang
+ctx.SetTimeout(timeout)
+go func() {
+    c.Next()
+    finish()
+}()
+<-ctx.Done()
+switch ctx.Err() {
+// fast return to release http resource, actual handler is still running
+case context.DeadlineExceeded:
+    GinError(c, ErrTimeout)
+    return
+default:
+    // do nothing, common path
 }
 ```
 
 ---
 
-# Assert
+# resource pool (queue/ ring buffer)
 
 ```golang
-func TestGetMongoDBInfo(t *testing.T) {
-	mongoConfig := getMongoDBInfo()
-	assert.Equal(t, "testt", mongoConfig.Name)
-}
+c := make(chan *Session, dbi.MaxConn)
+
+// fetch resource, blocking call
+session = <-p.c:
+
+// put back to pool after used
+p.c <- session
 ```
-
-```bash
---- FAIL: TestGetMongoDBInfo (0.00s)
-    .../main_test.go:54:
-        	Error Trace:	main_test.go:54
-        	Error:      	Not equal:
-        	            	expected: "testt"
-        	            	actual  : "test"
-        	Test:       	TestGetMongoDBInfo
-FAIL
-```
-
----
-
-# HTTP mock
-
-```golang
-defer gock.Off() // Flush pending mocks after test execution
-gock.InterceptClient(httpClient)
-defer gock.RestoreClient(httpClient)
-apDomain := "http://test.com"
-path := "/test"
-gock.New(apDomain).
-    Get(path).
-    Reply(200).
-    JSON(map[string]string{
-        "id": "123",
-    })
-```
-
----
-
-# dockertest run mongo
-
-```golang
-var (
-	dockerPool     *dockertest.Pool
-	dockerResource *dockertest.Resource
-)
-
-dockerPool, err = dockertest.NewPool("")
-dockerResource, err = dockerPool.Run("mongo", "3.4", nil)
-dockerResource.GetPort("27017/tcp")
-```
-
----
-
-# dockertest teardown
-
-```golang
-func AfterTest(ret *int) {
-	if e := recover(); e != nil {
-		dockerPool.Purge(dockerResource)
-		os.Exit(1)
-	}
-	dockerPool.Purge(dockerResource)
-	os.Exit(*ret)
-}
-```
-
-* sometimes teardown fail, please use `docker system prune -a`
-
----
-
-# go benchmark #1
-
-* `go test -benchmem -run=xxx` (test cpu time and memory alloc)
-* used when compared two or more syntax/function
-
-```golang
-func BenchmarkIfLt1(b *testing.B) {
-	count := 0
-	test := ""
-	for n := 0; n < b.N; n++ {
-		if len(test) < 1 {
-			count++
-		}
-	}
-	fmt.Println("lt1:", count)
-}
-```
-
----
-
-# go benchmark result
-
-```bash
-BenchmarkIfLt1-4   	lt1: 100
-lt1: 10000
-lt1: 1000000
-lt1: 100000000
-lt1: 2000000000
-2000000000	         0.64 ns/op	       0 B/op	       0 allocs/op
-}
-```
-
----
-
-# go gRPC implementaion
-
-* [grpc intro](https://grpc.io/docs/guides/concepts.html)
-* [go-grpc](https://github.com/grpc/grpc-go)
-* `protoc --go_out=plugins=grpc:. *.proto`
-* [go grpc example](https://github.com/grpc/grpc-go/tree/master/examples/helloworld)
-* server and client struct implement interface
-* `RegisgerXXXServiceServer` `NewXXXServiceClient`
-* example in the example3/
 
 ---
 
@@ -166,7 +128,7 @@ lt1: 2000000000
 
 # go context tree example
 
-![](example3/context-tree.png)
+![](assets/context-tree.png)
 
 ---
 
@@ -202,7 +164,7 @@ for child := range c.children {
 
 # go cancel tree example
 
-![](example3/context-cancel.png)
+![](assets/context-cancel.png)
 
 ---
 
@@ -297,3 +259,11 @@ case <-ctx.Done():
     fmt.Println(ctx.Err())
 }
 ```
+
+---
+
+# Extend reading
+
+* [Error handling and Go](https://blog.golang.org/error-handling-and-go)
+* [Go Errors](https://dave.cheney.net/paste/gocon-spring-2016.pdf)
+* [Visualize go routines](https://divan.github.io/posts/go_concurrency_visualize/)

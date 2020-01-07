@@ -1,12 +1,17 @@
-<!-- $theme: gaia -->
+---
+marp: true
+---
+
+<!-- theme: gaia -->
 
 # Golang Tutorial #4
+
+## Go practice
 
 * go code error
 * gin (RESTful) error handling
 * go log
 * go kafka
-* go debug on vscode
 
 ---
 
@@ -14,7 +19,6 @@
 
 * native error is just a wrapper of string
 * usually, we need more info in error for debugging
-* [gopkg](gitlab.devops.maaii.com/general-backend/gopkg)
 
 ```
 // CodeError - Code Error interface
@@ -26,9 +30,7 @@ type CodeError interface {
 
 ---
 
-# Gin Error
-
-* https://issuetracking.maaii.com:9443/display/RnD/REST+API+JSON+Schema+for+Response+Body
+# HTTP Response Error
 
 ```json
 {
@@ -41,7 +43,7 @@ type CodeError interface {
 
 # Gin middleware error
 
-* use `c.Abort` and not go to `c.Next()`
+* use `c.Abort` and gin would not go to `c.Next()`
 
 ```
 func GinMiddleware()) gin.HandlerFunc {
@@ -49,7 +51,6 @@ func GinMiddleware()) gin.HandlerFunc {
 		xxx, err := ...
 		if err != nil {
 			common.GinError(c, err)
-			return
 		}
 
 		c.Next()
@@ -94,7 +95,8 @@ func GinError(c *gin.Context, err gopkg.CodeError) {
 func (hook *kafkaHook) Fire(entry *logrus.Entry) error {
 // ...
 	select {
-	case hook.sendQueue <- &sp.ProducerRecord{Topic: topic, Value: line}:
+	case hook.sendQueue <- 
+	&sp.ProducerRecord{Topic: topic, Value: line}:
 		return nil
 	case <-time.After(hook.enqueueTimeout):
 		return errors.New("Enqueue Timeout Drop")
@@ -104,14 +106,21 @@ func (hook *kafkaHook) Fire(entry *logrus.Entry) error {
 
 ---
 
-# current ELK usecase
+# EFK usecase
 
-* gitlab.com/general-backend/m800log
+* elastic-search/fluen-bit/Kibana
 * k8s fluentbit (forward log to ES)
 * format json string for ELK
+* ES automatic check value type and create index
 
-```go
-func (f *M800JSONFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+---
+
+# Log Formater
+
+```golang
+// log formatter
+func (f *M800JSONFormatter) Format(entry *logrus.Entry)
+ ([]byte, error) {
 	// ...
 	data := make(logrus.Fields, len(entry.Data)+BuildInFieldNumber)
 	data[goctx.LogKeyApp] = f.App
@@ -128,14 +137,15 @@ func (f *M800JSONFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 
 # go kafka
 
-* github.com/confluentinc/confluent-kafka-go (cgo library) more easy
-* github.com/Shopify/sarama another common option
+* github.com/confluentinc/confluent-kafka-go (cgo library)
+  * good performance
+  * official support
 
 ---
 
 # go kafka consumer
 
-* use consumer group to achieve `maaii-pubsub Once/OncePerServer...`
+* use consumer group to achieve one event only handled once by one group
 
 ```golang
 func getConsumerConfig() *kafka.ConfigMap {
@@ -152,6 +162,9 @@ func getConsumerConfig() *kafka.ConfigMap {
 
 # go kafka producer
 
+* [example](https://github.com/confluentinc/confluent-kafka-go/tree/master/examples/idempotent_producer_example)
+* must create goroutine to handle ack queue to avoid local queue full
+
 ```golang
 func getProducerConfig() *kafka.ConfigMap {
 	config := &kafka.ConfigMap{
@@ -163,8 +176,30 @@ func getProducerConfig() *kafka.ConfigMap {
 
 ---
 
-# go debug on vscode
+# go kafka producer handle
 
-* go get -u github.com/go-delve/delve/cmd/dlv
-* lazy: open main.go and launch debugger
-* check your debugger launch point
+```golang
+// send event to kafka
+err := p.Produce(&kafka.Message{
+	//...
+	Value:          []byte(word),
+}, nil)
+if err != nil {
+	log.Println(err)
+}
+p.Flush(1 * 1000)
+// read ack
+go func(){
+	for e := range p.Events() {
+		...
+	}
+}
+```
+
+---
+
+# go kafka serialization
+
+* `func (c *Consumer) ReadMessage(timeout time.Duration) (*Message, error)`
+* all we sent and got are []byte
+* use header to filter event early
