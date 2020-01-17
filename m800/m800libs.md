@@ -23,8 +23,9 @@ marp: true
 
 # Database Libs
 
-* kafkautil: worker-pool model consumer and producer practice
-* mgopool: mgo session pool and metrics, tracing integration
+* kafkautil: worker-pool model consumer and producer practice.
+  * producer ack error handle
+* mgopool: mgo session pool management, metrics and tracing integration
 * redispool: reids-sentinel integration and high level function wrap
 
 ---
@@ -32,14 +33,19 @@ marp: true
 # goctx
 
 * include native context method
-* log key and http key mapping (to save log size)
-* GetCID() will generate cid if nil
+* log key and http key mapping (to reduce log size)
+  * i.e., `x-correlation-id` to `cid`
+* ctx.GetCID() will generate cid if no cid data
 
 ```golang
 ctx := goctx.Background()
-ctx := intercom.GetContextFromGin()
-ctx := goctx.GetContextFromHeaderKeyMap()
-ctx := goctx.GetContextFromMap()
+ctx := intercom.GetContextFromGin(c)
+
+headerMap := ctx.HeaderKeyMap()
+ctx := goctx.GetContextFromHeaderKeyMap(headerMap)
+
+dataMap := ctx.Map()
+ctx := goctx.GetContextFromMap(dataMap)
 ```
 
 ---
@@ -83,7 +89,7 @@ m800log.Errorf(ctx, "[crossPub] downstream region:%s grpc error:%v", region, err
 
 * it's about distributed request lifecycle
 * gotracev2: https://docs.google.com/presentation/d/1n19pOzb-emAgIkjxx5zg5KWvAQfSPm6S1TkjuUavkKE/edit?usp=sharing
-* https://docs.google.com/presentation/d/1KmRmuamLaQmRxQF_bYX33bMA7EwSW1lbwFPtuWeI9eI/edit?usp=sharing
+* tracing concept intro: https://docs.google.com/presentation/d/1KmRmuamLaQmRxQF_bYX33bMA7EwSW1lbwFPtuWeI9eI/edit?usp=sharing
 
 ---
 
@@ -133,7 +139,7 @@ func GinOKResponse(c *gin.Context, result interface{})
 ## Set HTTP Error code by m800 error code
 
 ```golang
-intercom.ErrorHttpStatusMapping.Set(1234567, http.StatusBadRequest)
+intercom.ErrorHttpStatusMapping.Set(1234567, 400)
 ```
 
 ---
@@ -148,12 +154,15 @@ func HTTPPostForm(ctx goctx.Context, url string, data url.Values) (resp *http.Re
 func M800Do(ctx goctx.Context, req *http.Request) (result *JsonResponse, err gopkg.CodeError)
 ```
 
+## HTTP Client flexibility
+
 ```golang
+// set squid proxy...
 func SetHTTPClient(client *http.Client)
 func SetHTTPClientTimeout(to time.Duration)
 ```
 
---- 
+---
 
 # intercom utils
 
@@ -167,20 +176,25 @@ func ParseJSONReq(ctx goctx.Context, req *http.Request, v interface{}) gopkg.Cod
 func PrintGinRouteInfo(rs []gin.RouteInfo)
 // read closer
 func ReadFromReadCloser(readCloser io.ReadCloser) ([]byte, gopkg.CodeError)
-// unit test
+
+// http server unit test
 req, _ = http.NewRequest(http.MethodGet, path, nil)
 resp = intercom.CreateTestResponseRecorder()
 routerTest.ServeHTTP(resp, req)
 ```
 
---- 
+---
 
 # mgopool
 
+Use library default static function (package object) or new an pool object.
+
 ```golang
+// static function which uses default object in package
 mgopool.Initialize(config)
 err = mgopool.QueryAll(ctx, dbPlugin, CollectionCommand, &result, selector, nil, 0, 0)
 
+// new pool object
 globalPool, errGlobal := mgopool.NewSessionPool(globalInfo)
 localPool, errLocal := mgopool.NewSessionPool(localInfo)
 
@@ -193,6 +207,8 @@ err = localPool.QueryAll(ctx, dbPlugin, CollectionCommand, &result, selector, ni
 
 ```golang
 rPool, err := redispool.NewPool(redisConf)
+// ...
+
 rPool.Setex("key", "10", "value")
 ```
 
@@ -204,21 +220,23 @@ rPool.Setex("key", "10", "value")
 if err := kafkautil.InitKafkaProducer(pCtx, pConf, nil); err != nil {
     return err
 }
+
 if err := kafkautil.InitKafkaConsumer(cCtx, cConf, []string{"topic1","topic2"}); err != nil {
     return err
 }
+
 defer kafkautil.ConsumerClose()
 defer kafkautil.ProducerClose()
-}
 ```
 
---- 
+---
 
 # kafkautil
 
 ```golang
 // producer
 err := kafkautil.Publish("topic1", []byte("key"), data, headers)
+
 // consumer
 // DispatchKafkaJob is handler to consume event
 kafkautil.ReadKafkaEvents(kafkaWorkers, kafkaQueueSize, DispatchKafkaJob)
