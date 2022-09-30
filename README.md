@@ -2,6 +2,22 @@
 
 * hw* are the folder for voluntary homework, can write the project under hw*/ and send merge request for peer review.
 
+## Prerequisites
+
+For very new beginners, please run the following resources first:
+
+### Basic syntax
+
+* https://go.dev/tour/
+* https://gobyexample.com/
+
+### Resources
+
+* https://github.com/0voice/Introduction-to-Golang
+* https://github.com/avelino/awesome-go
+* https://github.com/golang-standards/project-layout
+* https://www.processon.com/view/link/5a9ba4c8e4b0a9d22eb3bdf0#map
+
 ## Lesson 1
 
 * Env setup
